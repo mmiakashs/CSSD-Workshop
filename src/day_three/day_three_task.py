@@ -6,8 +6,8 @@ import pandas as pd
 
 class Parcel(object):
     def __init__(self, parcel_destination, parcel_weight):
-        self._weight = parcel_weight
-        self._destination = parcel_destination
+        self.weight = parcel_weight
+        self.destination = parcel_destination
 
 class Train(object):
     def __init__(self, train_destination, train_capacity, train_no):
@@ -21,14 +21,14 @@ class Train(object):
         return len(self._parcels)
     
     def load_parcel(self,parcel):
-        self._actual_load += parcel.parcel_weight
+        self._actual_load += parcel.weight
         self._parcels.append(parcel)
         
     def can_load_parcel(self,parcel):
-        return (self._actual_load + parcel.parcel_weight) < self._capacity
+        return ((self._actual_load + parcel.weight) < self._capacity) and self.is_destination_match(parcel)
 
     def is_destination_match(self, parcel):
-        return self._destination == parcel.parcel_destination
+        return self._destination == parcel.destination
     
     def __str__(self):
         train_description = "Train: {}\nDestination: {}\nCapacity: {:.2f}\nActual Load: {:.2f}\nNumber of parcels: {}\nParcels:\n"\
@@ -40,7 +40,7 @@ class Train(object):
         
         parcels_infos = []
         for parcel_info in self._parcels:
-            parcels_infos.append("{} {:.2f}".format(parcel_info.parcel_destination, parcel_info.parcel_weight))
+            parcels_infos.append("{} {:.2f}".format(parcel_info.destination, parcel_info.weight))
 
         parcels_infos_concat =  '\n'.join(parcels_infos)
 
@@ -74,7 +74,7 @@ class Station:
     def load_trains(self):
         for index, train_info in self.trains.iterrows():
             train = Train(train_info['train_destination'],
-                          train_info['train_max_weight']*1000,
+                          1000.0*train_info['train_max_weight'],
                           self.train_no)
             print('Loading train', self.train_no)
             self.load_parcels(train)
@@ -89,12 +89,12 @@ class Station:
                 break
             parcel = Parcel(self.parcels[parcels_iterator][0], self.parcels[parcels_iterator][1])
 
-            if(train.can_load_parcel(parcel) and train.is_destination_match(parcel) and parcels_iterator not in self.parcels_delivery_status):
+            if(train.can_load_parcel(parcel) and parcels_iterator not in self.parcels_delivery_status):
                 train.load_parcel(parcel)
                 self.parcels_delivery_status[parcels_iterator]=True
 
             parcels_iterator -= 1
 
-station = Station('Station A', '../../data/train_task/parcels.txt', '../../data/train_task/trains.txt')
+station = Station('../../data/train_task/parcels.txt', '../../data/train_task/trains.txt')
 station.load_trains()
 
